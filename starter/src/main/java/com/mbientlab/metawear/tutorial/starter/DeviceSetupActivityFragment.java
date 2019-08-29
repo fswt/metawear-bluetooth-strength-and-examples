@@ -43,9 +43,13 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Switch;
 
 import com.mbientlab.metawear.MetaWearBoard;
 import com.mbientlab.metawear.android.BtleService;
+import com.mbientlab.metawear.module.Led;
+import com.mbientlab.metawear.module.Settings;
+import com.mbientlab.metawear.module.SensorFusionBosch;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -96,6 +100,56 @@ public class DeviceSetupActivityFragment extends Fragment implements ServiceConn
     @Override
     public void onServiceDisconnected(ComponentName name) {
 
+    }
+
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        ((Switch) view.findViewById(R.id.led_ctrl)).setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Led led= metawear.getModule(Led.class);
+            if (isChecked) {
+                
+                // change bluetooth strength
+                final Settings settings = metawear.getModule(Settings.class);
+                settings.editBleAdConfig()
+                        .deviceName("AntiWare")
+                        .txPower((byte) 0)
+                        .interval((short) 1024)
+                        .timeout((byte) 100)
+                        .commit();
+
+                // switch LED on/off
+                led.editPattern(Led.Color.BLUE, Led.PatternPreset.SOLID)
+                        .repeatCount(Led.PATTERN_REPEAT_INDEFINITELY)
+                        .commit();
+                led.play();
+            } else {
+                led.stop(true);
+            }
+        });
+        ((Switch) view.findViewById(R.id.power_ctrl)).setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Led led= metawear.getModule(Led.class);
+            if (isChecked) {
+
+                // change bluetooth strength
+                final Settings settings = metawear.getModule(Settings.class);
+                settings.editBleAdConfig()
+                        .deviceName("AntiWare")
+                        .txPower((byte) 4)
+                        .interval((short) 1024)
+                        .timeout((byte) 100)
+                        .commit();
+
+                // switch LED on/off
+                led.editPattern(Led.Color.RED, Led.PatternPreset.SOLID)
+                        .repeatCount(Led.PATTERN_REPEAT_INDEFINITELY)
+                        .commit();
+                led.play();
+            } else {
+                led.stop(true);
+            }
+        });
     }
 
     /**
